@@ -11,7 +11,8 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
-    "test:smoke": "tsx scripts/smoke-test.ts"
+    "test:smoke": "tsx scripts/smoke-test.ts",
+    "test:simulate": "tsx scripts/simulate.ts"
   },
   "dependencies": {
     "bcryptjs": "2.4.3",

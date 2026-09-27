@@ -123,12 +123,16 @@ export async function createBooking(userId: string, scheduleId: string) {
 export async function confirmPayment(userId: string, input: { orderId: string; paymentKey: string; amount: number }) {
   const outbox: Notice[] = [];
   const result = await db.transaction(async (tx) => {
-    const [p] = await tx.select().from(payments).where(eq(payments.orderId, input.orderId)).for("update");
+    const [order] = await tx.select({ bookingId: payments.bookingId }).from(payments).where(eq(payments.orderId, input.orderId));
+    if (!order) throw new ApiError(404, "주문을 찾을 수 없습니다.");
+    // 잠금 순서는 항상 예약 → 결제 (다른 모든 상태 변경과 동일) — 순서가 다르면 지도자 승인과 동시에 들어온 중복 결제 요청이 교착될 수 있다
+    const { booking, schedule, cls, teacher, payment: p } = await lockBooking(tx, order.bookingId);
     if (!p) throw new ApiError(404, "주문을 찾을 수 없습니다.");
-    const { booking, schedule, cls, teacher } = await lockBooking(tx, p.bookingId);
     if (booking.userId !== userId) throw new ApiError(403, "본인의 주문만 결제할 수 있습니다.");
 
     if (p.status === "PAID") return { bookingId: booking.id, status: booking.status }; // 중복 요청 — 멱등 처리
+    // 정원 재확인은 스케줄 행을 잠근 채로 — 결제 대기 15분이 지난 주문 여러 개가 동시에 승인 요청해도 좌석이 겹치지 않도록
+    await tx.select({ id: schedules.id }).from(schedules).where(eq(schedules.id, schedule.id)).for("update");
     if (p.status !== "READY" || booking.status !== "PENDING_PAYMENT")
       throw new ApiError(409, "결제를 진행할 수 없는 주문입니다. 다시 예약해주세요.");
     // ※ 아래 실패 처리들은 throw 대신 값을 반환한다 — 트랜잭션 안에서 throw 하면 실패 기록까지 롤백되기 때문

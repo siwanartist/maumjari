@@ -96,7 +96,7 @@ export default function Bookings() {
             {open.kind === "report" && <p className="muted small">지도자가 오지 않았거나 수업에 문제가 있었다면 알려주세요. 확인되면 전액 환불됩니다.</p>}
             {open.kind === "review" && (
               <div className="row" style={{ margin: "6px 0 10px" }} role="radiogroup" aria-label="별점">
-                {[1, 2, 3, 4, 5].map((n) => <button key={n} className="link" style={{ fontSize: 26, color: n <= rating ? "var(--accent-ink)" : "var(--muted)" }} aria-label={`${n}점`} onClick={() => setRating(n)}>★</button>)}
+                {[1, 2, 3, 4, 5].map((n) => <button key={n} className="link" style={{ fontSize: 26, color: n <= rating ? "var(--dawn)" : "var(--muted)" }} aria-label={`${n}점`} onClick={() => setRating(n)}>★</button>)}
               </div>
             )}
             <textarea className="textarea" maxLength={1000} placeholder={open.kind === "cancel" ? "취소 사유 (선택)" : open.kind === "review" ? "수업은 어떠셨나요? (5자 이상)" : "상황을 자세히 적어주세요 (5자 이상)"} value={text} onChange={(e) => setText(e.target.value)} />

@@ -1,7 +1,9 @@
 /**
  * 초기 데이터
- *   npm run db:seed            → 관리자 계정만 생성 (운영 서버용)
- *   npm run db:seed -- --demo  → 관리자 + 데모 지도자/클래스/후기 (개발·시연용, 운영 DB에 넣지 말 것)
+ *   npm run db:seed            → 관리자 계정 생성 (운영 서버용)
+ *                                 단, PAYMENT_PROVIDER=mock(테스트 운영)이면 체험용 지도자 3명도 함께 생성
+ *   npm run db:seed -- --demo  → 관리자 + 데모 지도자 4명/클래스/후기 (개발·시연용, 운영 DB에 넣지 말 것)
+ * 이미 있는 계정·지도자는 건너뛰므로 여러 번 실행해도 안전하다.
  */
 import "dotenv/config";
 import bcrypt from "bcryptjs";
@@ -70,17 +72,22 @@ async function main() {
   await ensureUser(adminEmail, adminPw, "운영자", "ADMIN");
   console.log(`✓ 관리자 계정: ${adminEmail}`);
 
-  if (!process.argv.includes("--demo")) return;
-  if (process.env.NODE_ENV === "production") throw new Error("운영 환경에는 데모 데이터를 넣을 수 없습니다.");
-  if (await db.query.teachers.findFirst()) { console.log("· 데모 데이터가 이미 있어 건너뜁니다."); return; }
+  const demoFlag = process.argv.includes("--demo");
+  const testMode = (process.env.PAYMENT_PROVIDER ?? "mock") === "mock"; // 가짜 결제 = 테스트 운영
+  if (!demoFlag && !testMode) return;
+  if (process.env.NODE_ENV === "production" && !testMode) throw new Error("운영 환경에는 데모 데이터를 넣을 수 없습니다.");
+  const demoTeachers = demoFlag ? DEMO : DEMO.slice(0, 3); // 테스트 배포에는 체험용 지도자 3명
 
   const students = [];
   for (let i = 0; i < 6; i++) students.push(await ensureUser(`student${i + 1}@demo.local`, "demo1234!", ["서하은", "박민준", "최지우", "한도현", "윤서아", "신유준"][i], "USER"));
   const demoUser = await ensureUser("demo@demo.local", "demo1234!", "데모회원", "USER");
   await db.insert(userPreferences).values({ userId: demoUser.id, motives: ["스트레스/불안 완화"], types: ["마음챙김"], level: "입문", time: "저녁" }).onConflictDoNothing();
 
-  for (const d of DEMO) {
+  let added = 0;
+  for (const d of demoTeachers) {
     const u = await ensureUser(d.email, "demo1234!", d.name, "TEACHER");
+    if (await db.query.teachers.findFirst({ where: eq(teachers.userId, u.id) })) continue; // 이미 있음
+    added++;
     const [t] = await db.insert(teachers).values({
       userId: u.id, displayName: d.name, tagline: d.tagline, bio: d.bio, certification: d.cert, region: d.region,
       latitude: d.lat, longitude: d.lng, tags: d.tags, status: "APPROVED", verified: d.verified,
@@ -115,8 +122,12 @@ async function main() {
     await db.update(teachers).set({ ratingAvg: sum / d.ratings.length, ratingCount: d.ratings.length }).where(eq(teachers.id, t.id));
   }
 
+  console.log(`✓ 체험용 지도자 ${added}명 추가 (${demoTeachers.map((d) => d.name).join(", ")})`);
+  if (!demoFlag) return;
+
   // 심사 대기 지도자 (운영자 콘솔 시연용)
   const applicant = await ensureUser("applicant@demo.local", "demo1234!", "강예린", "TEACHER");
+  if (await db.query.teachers.findFirst({ where: eq(teachers.userId, applicant.id) })) return;
   await db.insert(teachers).values({
     userId: applicant.id, displayName: "강예린", tagline: "걷기명상 산책", region: "용산구", tags: ["걷기명상", "입문"],
     bio: "한강변을 걸으며 감각에 집중하는 걷기명상을 안내하고 싶습니다. 3년간 소규모 모임을 운영했습니다.",

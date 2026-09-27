@@ -3,8 +3,9 @@ import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { handler, parseBody, ok, ApiError } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
+import { recalcTeacherRating } from "@/lib/rating";
 
-const { bookings, schedules, classes, reviews, teachers } = schema;
+const { bookings, schedules, classes, reviews } = schema;
 const body = z.object({
   bookingId: z.string().min(1),
   rating: z.number().int().min(1).max(5),
@@ -21,15 +22,12 @@ export const POST = handler(async (req: Request) => {
       .innerJoin(classes, eq(schedules.classId, classes.id)).where(eq(bookings.id, b.bookingId));
     if (!row || row.userId !== u.id) throw new ApiError(404, "예약을 찾을 수 없습니다.");
     if (row.status !== "COMPLETED") throw new ApiError(400, "수업을 완료한 예약에만 후기를 남길 수 있습니다.");
+    // 지도자 행을 먼저 잠근다 — 후기를 먼저 넣으면(외래키 공유 잠금) 같은 지도자에게 동시에 후기가 들어올 때 교착이 난다
+    await tx.execute(sql`SELECT id FROM teachers WHERE id = ${row.teacherId} FOR UPDATE`);
     const ins = await tx.insert(reviews).values({ bookingId: b.bookingId, userId: u.id, teacherId: row.teacherId, rating: b.rating, body: b.body })
       .onConflictDoNothing().returning({ id: reviews.id });
     if (ins.length === 0) throw new ApiError(409, "이미 후기를 작성했습니다.");
-    // 평균 평점을 증분 갱신 (행 잠금으로 동시 작성 시에도 정확)
-    await tx.execute(sql`SELECT id FROM teachers WHERE id = ${row.teacherId} FOR UPDATE`);
-    await tx.update(teachers).set({
-      ratingAvg: sql`(${teachers.ratingAvg} * ${teachers.ratingCount} + ${b.rating}) / (${teachers.ratingCount} + 1)`,
-      ratingCount: sql`${teachers.ratingCount} + 1`,
-    }).where(eq(teachers.id, row.teacherId));
+    await recalcTeacherRating(tx, row.teacherId);
   });
   return ok({ ok: true }, 201);
 });

@@ -3,6 +3,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, loadPendingPrefs } from "@/lib/client";
+import SocialLogin from "@/components/SocialLogin";
 
 function SignupForm() {
   const router = useRouter();
@@ -22,7 +23,9 @@ function SignupForm() {
   return (
     <main className="shell">
       <form className="pad" onSubmit={submit}>
-        <h1 style={{ fontSize: 22, marginTop: 30 }}>회원가입</h1>
+        <h1 style={{ marginTop: 30 }}>회원가입</h1>
+        <p className="muted small" style={{ margin: "0 0 20px" }}>간편 로그인으로 가입하면 이용약관과 개인정보처리방침에 동의하는 것으로 봅니다.</p>
+        <SocialLogin next={next} />
         <label className="label" htmlFor="name">닉네임</label>
         <input id="name" className="input" required maxLength={20} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
         <label className="label" htmlFor="email">이메일</label>

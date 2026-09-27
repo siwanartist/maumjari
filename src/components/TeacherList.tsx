@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { api, loadPendingPrefs } from "@/lib/client";
 import { TeacherCard, ReelCard, type TeacherListItem } from "./TeacherCards";
 import { TYPES } from "@/lib/constants";
+import SearchBox from "./SearchBox";
 
 type Resp = { teachers: TeacherListItem[]; recommendedIds: string[]; personalized: boolean };
 const SORTS = [["reco", "추천순"], ["rating", "평점순"], ["distance", "거리순"], ["new", "신규순"], ["price", "가격순"]] as const;
@@ -21,6 +22,7 @@ export default function TeacherList({ mode }: { mode: "home" | "explore" }) {
   const [sort, setSort] = useState("reco");
   const [type, setType] = useState("");
   const [format, setFormat] = useState("");
+  const [query, setQuery] = useState("");
   const [loc, setLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [data, setData] = useState<Resp | null>(null);
   const [recoData, setRecoData] = useState<Resp | null>(null);
@@ -49,6 +51,11 @@ export default function TeacherList({ mode }: { mode: "home" | "explore" }) {
     setSort(s);
   }
 
+  // 이름·한 줄 소개·태그·지역에서 검색어를 찾는다 (공백·대소문자 무시)
+  const q = query.trim().toLowerCase().replace(/\s+/g, "");
+  const matches = (t: TeacherListItem) => !q || [t.displayName, t.tagline, t.region, ...t.tags].join(" ").toLowerCase().replace(/\s+/g, "").includes(q);
+  const shown = data?.teachers.filter(matches);
+
   const byId = new Map((recoData?.teachers ?? []).map((t) => [t.id, t]));
   const reco = (recoData?.recommendedIds ?? []).map((id) => byId.get(id)!).filter(Boolean);
   const top = reco[0];
@@ -56,10 +63,14 @@ export default function TeacherList({ mode }: { mode: "home" | "explore" }) {
   return (
     <>
       {mode === "home" && top && (
-        <section className="hero">
+        <section className="hero" aria-label="추천 지도자">
           <span className="hbadge">{recoData?.personalized ? "회원님 맞춤 1순위" : "지금 인기 있는 지도자"}</span>
           <h2>{top.displayName}</h2>
-          <div className="sub">{[...top.tags.slice(0, 2), top.ratingCount ? `★ ${top.ratingAvg.toFixed(1)} (${top.ratingCount})` : "신규"].join(" · ")}</div>
+          <div className="sub">
+            {[...top.tags.slice(0, 2), ""].join(" · ")}
+            {top.ratingCount ? <span className="star">★ {top.ratingAvg.toFixed(1)}</span> : "신규"}
+            {top.ratingCount ? ` (${top.ratingCount})` : ""}
+          </div>
           <a className="hbtn" href={`/teachers/${top.id}`}>프로필 보기</a>
         </section>
       )}
@@ -71,6 +82,9 @@ export default function TeacherList({ mode }: { mode: "home" | "explore" }) {
       )}
 
       <div className="section-title">전체 지도자</div>
+      {mode === "explore" && (
+        <SearchBox value={query} onChange={setQuery} placeholder="지도자 이름, 분야, 지역 검색" label="지도자 검색" />
+      )}
       {mode === "explore" && (
         <div className="pad" style={{ paddingTop: 0, paddingBottom: 6 }}>
           <div>
@@ -90,8 +104,8 @@ export default function TeacherList({ mode }: { mode: "home" | "explore" }) {
       <div className="pad" style={{ paddingTop: 0 }}>
         {err && <p className="error">{err}</p>}
         {!data && !err && [0, 1, 2].map((i) => <div key={i} className="skeleton" />)}
-        {data?.teachers.length === 0 && <p className="muted">조건에 맞는 지도자가 없습니다. 필터를 바꿔보세요.</p>}
-        {data?.teachers.map((t) => <TeacherCard key={t.id} t={t} />)}
+        {shown?.length === 0 && <p className="muted">{q ? `"${query.trim()}"에 맞는 지도자가 없습니다.` : "조건에 맞는 지도자가 없습니다. 필터를 바꿔보세요."}</p>}
+        {shown?.map((t) => <TeacherCard key={t.id} t={t} />)}
       </div>
     </>
   );
