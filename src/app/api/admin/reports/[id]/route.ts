@@ -4,6 +4,7 @@ import { db, schema } from "@/db";
 import { handler, parseBody, ok, ApiError } from "@/lib/api";
 import { requireAdmin } from "@/lib/auth";
 import { adminTeacherNoShow } from "@/lib/booking";
+import { recalcTeacherRating } from "@/lib/rating";
 
 /**
  * 신고 처리
@@ -28,7 +29,11 @@ export const POST = handler(async (req: Request, ctx: { params: Promise<{ id: st
   if (b.action === "resolve") {
     if (b.hideReview) {
       if (r.targetType !== "REVIEW") throw new ApiError(400, "후기 신고에만 적용할 수 있습니다.");
-      await db.update(schema.reviews).set({ isHidden: true }).where(eq(schema.reviews.id, r.targetId));
+      await db.transaction(async (tx) => {
+        const [rv] = await tx.update(schema.reviews).set({ isHidden: true }).where(eq(schema.reviews.id, r.targetId)).returning({ teacherId: schema.reviews.teacherId });
+        if (!rv) throw new ApiError(404, "후기를 찾을 수 없습니다.");
+        await recalcTeacherRating(tx, rv.teacherId); // 숨긴 후기는 평점에서도 제외
+      });
     }
     if (b.confirmTeacherNoShow) {
       if (r.targetType !== "BOOKING") throw new ApiError(400, "예약 신고에만 적용할 수 있습니다.");
