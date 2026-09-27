@@ -1,0 +1,18 @@
+# 10분마다 예약 정리 작업 호출 (지도자 미응답 자동 환불, 결제 미완료 만료, 수업 리마인드, 자동 완료)
+# GitHub 저장소 Settings → Secrets and variables → Actions 에 두 값을 등록:
+#   APP_URL      예) https://maumjari.com
+#   CRON_SECRET  서버 환경변수 CRON_SECRET 과 같은 값
+name: booking-sweep
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call sweep endpoint
+        run: |
+          curl -fsS --max-time 60 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.APP_URL }}/api/cron/sweep"
