@@ -70,7 +70,7 @@ export default function Onboarding() {
   return (
     <main className="shell">
       <div className="pad" style={{ paddingBottom: 0 }}>
-        <h1 style={{ fontSize: 22 }}>마음자리</h1>
+        <h1 className="brand" style={{ fontSize: 26 }}>마음자리</h1>
         <p className="muted small" style={{ margin: 0 }}>몇 가지 질문으로 당신에게 맞는 명상 지도자를 찾아드릴게요.</p>
       </div>
       <div className="progress" style={{ marginTop: 18 }}><i style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} /></div>

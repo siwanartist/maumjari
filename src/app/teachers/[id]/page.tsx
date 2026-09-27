@@ -3,6 +3,7 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import Avatar from "@/components/Avatar";
+import { BackIcon, VerifiedIcon } from "@/components/Icons";
 import { api } from "@/lib/client";
 import { fmtDateTime, fmtDate, won } from "@/lib/format";
 
@@ -42,22 +43,25 @@ export default function TeacherDetail(props: { params: Promise<{ id: string }> }
   }
 
   if (err) return <main className="shell"><div className="pad"><p className="error">{err}</p><button className="btn-text" onClick={() => router.push("/")}>홈으로</button></div><BottomNav /></main>;
-  if (!d) return <main className="shell"><div className="cover" /><div className="pad"><div className="skeleton" /></div></main>;
+  if (!d) return <main className="shell"><div className="cover" /><div className="pad"><div className="skeleton" /><div className="skeleton" /></div></main>;
   const t = d.teacher;
 
   return (
     <main className="shell">
       <div className="cover" style={t.coverImageUrl ? { backgroundImage: `url(${t.coverImageUrl})` } : undefined}>
-        <button className="link" onClick={() => router.back()} style={{ color: "#fff", padding: 16 }} aria-label="뒤로">←</button>
+        <button className="iconbtn blur" onClick={() => router.back()} aria-label="뒤로"><BackIcon size={22} strokeWidth={2.2} /></button>
       </div>
       <div className="dheader">
-        <Avatar name={t.displayName} url={t.profileImageUrl} />
-        <h2 style={{ marginTop: 10 }}>{t.displayName} {t.verified && <span className="badge solid">인증 지도자</span>}</h2>
-        {t.tagline && <div className="small">{t.tagline}</div>}
-        <div className="meta">{[t.region, t.ratingCount ? `★ ${t.ratingAvg.toFixed(1)} (${t.ratingCount})` : "신규 지도자"].filter(Boolean).join(" · ")}</div>
+        {t.verified ? <span className="avatar-ring"><Avatar name={t.displayName} url={t.profileImageUrl} /></span> : <Avatar name={t.displayName} url={t.profileImageUrl} />}
+        <h2>{t.displayName} {t.verified && <span className="vpill"><VerifiedIcon size={15} decorative />인증 지도자</span>}</h2>
+        {t.tagline && <div className="tagline">{t.tagline}</div>}
+        <div className="meta">
+          {t.ratingCount ? <><span className="rating">★ {t.ratingAvg.toFixed(1)}</span> ({t.ratingCount})</> : "신규 지도자"}
+          {t.region && <> · {t.region}</>}
+        </div>
         {t.status !== "APPROVED" && <p className="badge warn">미리보기 — 심사 승인 전에는 다른 사용자에게 보이지 않습니다</p>}
       </div>
-      <div className="tabs" role="tablist">
+      <div className="tabs" role="tablist" aria-label="지도자 정보">
         {TABS.map(([k, l]) => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "sel" : ""} onClick={() => setTab(k)}>{l}</button>)}
       </div>
 
@@ -65,7 +69,7 @@ export default function TeacherDetail(props: { params: Promise<{ id: string }> }
         {tab === "profile" && (
           <div>
             <p style={{ whiteSpace: "pre-wrap", marginTop: 0 }}>{t.bio}</p>
-            {t.certification && <><div className="label">경력 · 자격</div><p className="small" style={{ whiteSpace: "pre-wrap", margin: 0 }}>{t.certification}</p></>}
+            {t.certification && <><div className="section-title" style={{ margin: "24px 0 8px", fontSize: 16 }}>경력 · 자격</div><p className="small" style={{ whiteSpace: "pre-wrap", margin: 0 }}>{t.certification}</p></>}
             <div style={{ marginTop: 12 }}>{t.tags.map((x) => <span key={x} className="badge">#{x}</span>)}</div>
           </div>
         )}
@@ -74,14 +78,12 @@ export default function TeacherDetail(props: { params: Promise<{ id: string }> }
           <div>
             {d.reviews.length === 0 ? <p className="muted">아직 후기가 없습니다. 첫 수강생이 되어주세요.</p> : (
               <>
-                <div className="row" style={{ alignItems: "flex-start", gap: 20, marginBottom: 10 }}>
-                  <div><div style={{ fontSize: 30, fontFamily: "Sora" }}>{t.ratingAvg.toFixed(1)}</div><div className="muted small">후기 {t.ratingCount}개</div></div>
+                <div className="row" style={{ alignItems: "center", gap: 24, marginBottom: 14 }}>
+                  <div><div className="rating-big">{t.ratingAvg.toFixed(1)}</div><div className="stars" aria-hidden>{"★".repeat(Math.round(t.ratingAvg))}{"☆".repeat(5 - Math.round(t.ratingAvg))}</div><div className="muted small">후기 {t.ratingCount}개</div></div>
                   <div style={{ flex: 1 }}>{d.ratingDistribution.map((r) => (
-                    <div key={r.star} className="row small" style={{ gap: 6 }}>
-                      <span style={{ width: 18 }}>{r.star}★</span>
-                      <div style={{ flex: 1, height: 5, background: "var(--line)", borderRadius: 3 }}>
-                        <div style={{ width: `${d.reviews.length ? (r.n / d.reviews.length) * 100 : 0}%`, height: "100%", background: "var(--accent)", borderRadius: 3 }} />
-                      </div>
+                    <div key={r.star} className="row small" style={{ gap: 8, marginBottom: 4 }}>
+                      <span className="muted" style={{ width: 12, textAlign: "right" }}>{r.star}</span>
+                      <div className="rbar"><i style={{ width: `${d.reviews.length ? (r.n / d.reviews.length) * 100 : 0}%` }} /></div>
                     </div>))}
                   </div>
                 </div>

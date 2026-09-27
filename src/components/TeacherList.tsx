@@ -56,10 +56,14 @@ export default function TeacherList({ mode }: { mode: "home" | "explore" }) {
   return (
     <>
       {mode === "home" && top && (
-        <section className="hero">
+        <section className="hero" aria-label="추천 지도자">
           <span className="hbadge">{recoData?.personalized ? "회원님 맞춤 1순위" : "지금 인기 있는 지도자"}</span>
           <h2>{top.displayName}</h2>
-          <div className="sub">{[...top.tags.slice(0, 2), top.ratingCount ? `★ ${top.ratingAvg.toFixed(1)} (${top.ratingCount})` : "신규"].join(" · ")}</div>
+          <div className="sub">
+            {[...top.tags.slice(0, 2), ""].join(" · ")}
+            {top.ratingCount ? <span className="star">★ {top.ratingAvg.toFixed(1)}</span> : "신규"}
+            {top.ratingCount ? ` (${top.ratingCount})` : ""}
+          </div>
           <a className="hbtn" href={`/teachers/${top.id}`}>프로필 보기</a>
         </section>
       )}

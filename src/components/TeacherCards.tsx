@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import Avatar from "./Avatar";
+import { VerifiedIcon } from "./Icons";
 import { won } from "@/lib/format";
 
 export type TeacherListItem = {
@@ -13,17 +14,22 @@ const fmtLabel = (f: string[]) => (f.includes("OFFLINE") && f.includes("ONLINE")
 const rating = (t: TeacherListItem) => (t.ratingCount ? `★ ${t.ratingAvg.toFixed(1)}` : "신규");
 
 export function TeacherCard({ t }: { t: TeacherListItem }) {
+  const avatar = <Avatar name={t.displayName} url={t.profileImageUrl} />;
   return (
     <Link href={`/teachers/${t.id}`} className="card click">
-      <Avatar name={t.displayName} url={t.profileImageUrl} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="row between"><b>{t.displayName}{t.verified && <span className="badge solid" style={{ margin: "0 0 0 6px" }}>인증</span>}</b><span>{rating(t)}</span></div>
+      {t.verified ? <span className="avatar-ring">{avatar}</span> : avatar}
+      <div className="tc-body">
+        <div className="row between" style={{ gap: 8 }}>
+          <b className="tc-name"><span>{t.displayName}</span>{t.verified && <VerifiedIcon size={16} />}</b>
+          <span className={`rating${t.ratingCount ? "" : " new"}`}>{rating(t)}</span>
+        </div>
+        {t.tagline && <div className="tagline">{t.tagline}</div>}
         <div className="meta">
           {[t.region, fmtLabel(t.formats), t.ratingCount ? `후기 ${t.ratingCount}` : null, t.distanceKm != null ? `${t.distanceKm}km` : null].filter(Boolean).join(" · ")}
         </div>
-        <div>
-          {t.tags.slice(0, 2).map((x) => <span className="badge" key={x}>#{x}</span>)}
-          {t.minPrice != null && <span className="badge">{won(t.minPrice)}~</span>}
+        <div className="tc-foot">
+          <div>{t.tags.slice(0, 2).map((x) => <span className="badge" key={x}>#{x}</span>)}</div>
+          {t.minPrice != null && <span className="price">{won(t.minPrice)}<small>~</small></span>}
         </div>
       </div>
     </Link>
@@ -31,11 +37,17 @@ export function TeacherCard({ t }: { t: TeacherListItem }) {
 }
 
 export function ReelCard({ t }: { t: TeacherListItem }) {
+  const img = t.coverImageUrl || t.profileImageUrl;
   return (
     <Link href={`/teachers/${t.id}`} className="reel-card">
-      <div className="rimg">{t.coverImageUrl || t.profileImageUrl ? <img src={t.coverImageUrl || t.profileImageUrl} alt="" /> : t.displayName[0]}</div>
-      <b>{t.displayName}</b>
-      <div className="meta small">{rating(t)} · {t.region || fmtLabel(t.formats)}</div>
+      <div className="rimg">
+        {img ? <img src={img} alt="" /> : <span aria-hidden>{t.displayName[0]}</span>}
+        <span className={`rpill${t.ratingCount ? "" : " new"}`}>{rating(t)}</span>
+        <div className="rcap">
+          <b>{t.displayName}</b>
+          <div className="meta">{t.region || fmtLabel(t.formats)}</div>
+        </div>
+      </div>
     </Link>
   );
 }
