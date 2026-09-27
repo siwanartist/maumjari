@@ -39,7 +39,7 @@ export const reportStatusEnum = pgEnum("report_status", ["OPEN", "RESOLVED", "DI
 export const users = pgTable("users", {
   id: id(),
   email: text("email").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
+  passwordHash: text("password_hash"), // 소셜 로그인으로만 가입한 계정은 null
   name: text("name").notNull(),
   bio: text("bio").notNull().default(""),
   region: text("region").notNull().default(""),
@@ -47,6 +47,19 @@ export const users = pgTable("users", {
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
+
+/** 소셜 로그인 연결 (구글·네이버). 한 사용자가 여러 제공자를 연결할 수 있다 */
+export const oauthAccounts = pgTable("oauth_accounts", {
+  id: id(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  provider: text("provider").notNull(),          // google | naver
+  providerUserId: text("provider_user_id").notNull(),
+  email: text("email").notNull().default(""),
+  createdAt: createdAt(),
+}, (t) => ({
+  providerUnique: uniqueIndex("oauth_accounts_provider_unique").on(t.provider, t.providerUserId),
+  userIdx: index("oauth_accounts_user_idx").on(t.userId),
+}));
 
 export const userPreferences = pgTable("user_preferences", {
   id: id(),

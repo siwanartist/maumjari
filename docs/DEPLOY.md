@@ -102,3 +102,22 @@ Actions 탭 → booking-sweep → Run workflow 로 한 번 실행해 초록색 �
 - [ ] 에러 알림 도구 연결 권장 (현재는 호스팅 로그에만 기록 — `[CRITICAL]` 로 시작하는 로그는 수동 환불이 필요한 건)
 - [ ] 이메일 발송 서비스 연결 (현재 이메일은 로그 출력만, 인앱 알림은 정상 동작)
 - [ ] `docs/TEST_SCENARIOS.md` 전 항목을 실제 배포 주소에서 수행
+
+
+## 소셜 로그인 (구글 · 네이버)
+
+키를 넣은 제공자만 로그인·회원가입 화면에 버튼이 나타납니다. 키가 없으면 이메일 로그인만 보입니다.
+
+1. **구글**: [Google Cloud Console](https://console.cloud.google.com) → API 및 서비스 → 사용자 인증 정보 → OAuth 클라이언트 ID(웹 애플리케이션)
+   - 승인된 리디렉션 URI: `https://<서비스주소>/api/auth/oauth/google/callback`
+   - 발급된 값을 `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` 환경변수에
+2. **네이버**: [네이버 개발자센터](https://developers.naver.com) → 애플리케이션 등록 → 사용 API "네이버 로그인", 제공 정보 "이메일·이름" 필수
+   - 서비스 URL: `https://<서비스주소>` / Callback URL: `https://<서비스주소>/api/auth/oauth/naver/callback`
+   - 발급된 값을 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` 환경변수에
+3. Vercel → Settings → Environment Variables 에 위 값을 넣고 다시 배포
+
+동작 방식: 제공자가 확인한 이메일이 기존 회원과 같으면 그 계정에 연결되고(비밀번호 로그인도 그대로 됨), 없으면 새로 가입됩니다.
+소셜로만 가입한 계정은 비밀번호가 없어 이메일 로그인 시 "간편 로그인을 이용하세요" 안내가 뜹니다.
+로그인 요청마다 무작위 state 를 쿠키에 심어 위조된 콜백을 거부합니다.
+
+자동 테스트: `scripts/oauth-mock.ts` 로 가짜 제공자를 띄우고 `OAUTH_MOCK_URL=http://localhost:3999` 로 앱을 실행하면 실제 구글·네이버 없이 전체 흐름을 검증할 수 있습니다.
