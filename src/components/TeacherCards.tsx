@@ -43,10 +43,10 @@ export function ReelCard({ t }: { t: TeacherListItem }) {
       <div className="rimg">
         {img ? <img src={img} alt="" /> : <span aria-hidden>{t.displayName[0]}</span>}
         <span className={`rpill${t.ratingCount ? "" : " new"}`}>{rating(t)}</span>
-        <div className="rcap">
-          <b>{t.displayName}</b>
-          <div className="meta">{t.region || fmtLabel(t.formats)}</div>
-        </div>
+      </div>
+      <div className="rcap">
+        <b>{t.displayName}</b>
+        <div className="meta">{t.region || fmtLabel(t.formats)}</div>
       </div>
     </Link>
   );

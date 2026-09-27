@@ -24,7 +24,7 @@ export default function Home() {
   if (!ready) return <main className="shell"><div className="pad">{[0, 1, 2].map((i) => <div key={i} className="skeleton" />)}</div></main>;
   return (
     <main className="shell">
-      <TopBar title="마음자리" />
+      <TopBar title="Anan" />
       {!loggedIn && (
         <div className="pad" style={{ paddingTop: 0 }}>
           <div className="card row between"><span className="small">가입하면 예약·메시지를 이용할 수 있어요.</span><Link href="/signup" className="btn btn-sm btn-ghost">회원가입</Link></div>

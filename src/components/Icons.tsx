@@ -1,4 +1,4 @@
-/* 마음자리 아이콘 — 24px 격자, 둥근 선(stroke) SVG. 색은 currentColor를 따릅니다. */
+/* Anan 아이콘 — 24px 격자, 둥근 선(stroke) SVG. 색은 currentColor를 따릅니다. */
 type IconProps = { size?: number; strokeWidth?: number; className?: string };
 
 function Svg({ size = 22, strokeWidth = 1.8, className, children }: IconProps & { children: React.ReactNode }) {

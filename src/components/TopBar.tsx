@@ -19,7 +19,7 @@ export default function TopBar({ title, back }: { title: string; back?: boolean 
             <BackIcon size={24} strokeWidth={2} />
           </button>
         )}
-        <span className={`title${title === "마음자리" ? " brand" : ""}`}>{title}</span>
+        <span className={`title${title === "Anan" ? " brand" : ""}`}>{title}</span>
       </div>
       <Link href="/notifications" className="iconbtn" aria-label={unread > 0 ? `알림 ${unread}개 읽지 않음` : "알림"}>
         <BellIcon size={24} />

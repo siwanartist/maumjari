@@ -41,7 +41,7 @@ export async function deliver(notices: Notice[]) {
 
       const user = await db.query.users.findFirst({ where: (u, { eq }) => eq(u.id, n.userId) });
       const adapter = emailAdapters[env.emailProvider];
-      if (user && adapter) await adapter.send(user.email, `[마음자리] ${n.title}`, `${n.body}\n${env.appUrl}${n.link ?? ""}`);
+      if (user && adapter) await adapter.send(user.email, `[Anan] ${n.title}`, `${n.body}\n${env.appUrl}${n.link ?? ""}`);
     } catch (e) {
       // 알림 실패가 예약/결제 자체를 실패시키지 않도록 로그만 남긴다
       console.error("[NOTIFY ERROR]", e);
