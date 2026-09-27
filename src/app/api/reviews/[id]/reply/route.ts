@@ -4,7 +4,8 @@ import { db, schema } from "@/db";
 import { handler, parseBody, ok, ApiError } from "@/lib/api";
 import { requireTeacher } from "@/lib/auth";
 
-export const POST = handler(async (req: Request, { params }: { params: { id: string } }) => {
+export const POST = handler(async (req: Request, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
   const { teacher } = await requireTeacher();
   const { reply } = await parseBody(req, z.object({ reply: z.string().trim().max(500) }));
   const r = await db.update(schema.reviews).set({ reply })

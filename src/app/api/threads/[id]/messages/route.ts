@@ -9,7 +9,8 @@ import { deliver } from "@/lib/notify";
 export const dynamic = "force-dynamic";
 const { messages, threads } = schema;
 
-export const GET = handler(async (_req: Request, { params }: { params: { id: string } }) => {
+export const GET = handler(async (_req: Request, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
   const u = await requireUser();
   const { thread, isStudent } = await assertThreadAccess(params.id, u.id);
   const rows = await db.select().from(messages).where(eq(messages.threadId, params.id)).orderBy(asc(messages.createdAt)).limit(500);
@@ -22,7 +23,8 @@ export const GET = handler(async (_req: Request, { params }: { params: { id: str
   });
 });
 
-export const POST = handler(async (req: Request, { params }: { params: { id: string } }) => {
+export const POST = handler(async (req: Request, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
   const u = await requireUser();
   const { counterpartUserId } = await assertThreadAccess(params.id, u.id);
   const { body } = await parseBody(req, z.object({ body: z.string().trim().min(1).max(1000) }));

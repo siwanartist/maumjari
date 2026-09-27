@@ -8,7 +8,8 @@ const body = z.object({
   reason: z.string().trim().max(300).default(""),
 });
 
-export const POST = handler(async (req: Request, { params }: { params: { id: string } }) => {
+export const POST = handler(async (req: Request, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
   const { teacher } = await requireTeacher({ approvedOnly: true });
   const { action, reason } = await parseBody(req, body);
   switch (action) {

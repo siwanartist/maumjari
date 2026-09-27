@@ -7,7 +7,8 @@ import { getCurrentUser } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 const { teachers, classes, schedules, bookings, reviews, users } = schema;
 
-export const GET = handler(async (_req: Request, { params }: { params: { id: string } }) => {
+export const GET = handler(async (_req: Request, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
   const t = await db.query.teachers.findFirst({ where: eq(teachers.id, params.id) });
   const me = await getCurrentUser();
   const isOwnerOrAdmin = me && (me.role === "ADMIN" || me.id === t?.userId);

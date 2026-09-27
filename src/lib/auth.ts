@@ -10,7 +10,7 @@ export async function checkPassword(pw: string, hash: string) { return bcrypt.co
 
 /** 현재 로그인 사용자 (DB 최신 정보 기준 — 역할 변경이 즉시 반영되도록) */
 export async function getCurrentUser() {
-  const s = await verifySession(cookies().get(SESSION_COOKIE)?.value);
+  const s = await verifySession((await cookies()).get(SESSION_COOKIE)?.value);
   if (!s) return null;
   const user = await db.query.users.findFirst({ where: eq(schema.users.id, s.uid) });
   return user ?? null;
@@ -39,8 +39,8 @@ export async function requireTeacher(opts: { approvedOnly?: boolean } = {}) {
 }
 
 export async function startSession(uid: string, role: "USER" | "TEACHER" | "ADMIN") {
-  cookies().set(SESSION_COOKIE, await signSession({ uid, role }), cookieOptions);
+  (await cookies()).set(SESSION_COOKIE, await signSession({ uid, role }), cookieOptions);
 }
-export function endSession() {
-  cookies().set(SESSION_COOKIE, "", { ...cookieOptions, maxAge: 0 });
+export async function endSession() {
+  (await cookies()).set(SESSION_COOKIE, "", { ...cookieOptions, maxAge: 0 });
 }

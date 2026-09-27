@@ -1,12 +1,13 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, use } from "react";
 import TopBar from "@/components/TopBar";
 import { api } from "@/lib/client";
 import { fmtDateTime } from "@/lib/format";
 
 type M = { id: string; body: string; mine: boolean; createdAt: string };
 
-export default function Thread({ params }: { params: { id: string } }) {
+export default function Thread(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const [title, setTitle] = useState("");
   const [msgs, setMsgs] = useState<M[]>([]);
   const [text, setText] = useState("");

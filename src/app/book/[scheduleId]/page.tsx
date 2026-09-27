@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import TopBar from "@/components/TopBar";
@@ -9,7 +9,8 @@ import { fmtDateTime, won } from "@/lib/format";
 type Summary = { schedule: { id: string; startsAt: string; classTitle: string; format: string; price: number; durationMinutes: number; teacherName: string; teacherId: string }; policy: string[] };
 type Checkout = { bookingId: string; orderId: string; amount: number; checkout: Record<string, unknown> & { provider?: string } };
 
-export default function BookPage({ params }: { params: { scheduleId: string } }) {
+export default function BookPage(props: { params: Promise<{ scheduleId: string }> }) {
+  const params = use(props.params);
   const router = useRouter();
   const [s, setS] = useState<Summary | null>(null);
   const [err, setErr] = useState("");

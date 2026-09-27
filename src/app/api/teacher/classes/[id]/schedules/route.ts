@@ -8,7 +8,8 @@ const { classes, schedules } = schema;
 const DAY = 86_400_000;
 
 /** 스케줄 추가: 단발(여러 일시) 또는 매주 반복. 시각은 한국시간(KST, UTC+9) 기준 */
-export const POST = handler(async (req: Request, { params }: { params: { id: string } }) => {
+export const POST = handler(async (req: Request, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
   const { teacher } = await requireTeacher();
   const [c] = await db.select().from(classes).where(and(eq(classes.id, params.id), eq(classes.teacherId, teacher.id)));
   if (!c) throw new ApiError(404, "클래스를 찾을 수 없습니다.");

@@ -6,7 +6,7 @@
 
 | 영역 | 선택 |
 |---|---|
-| 프론트엔드 + 백엔드 | Next.js 14 (App Router) + TypeScript — 한 프로젝트 |
+| 프론트엔드 + 백엔드 | Next.js 15.5 (App Router) + TypeScript — 한 프로젝트 |
 | 데이터베이스 | PostgreSQL + Drizzle ORM |
 | 인증 | 이메일/비밀번호 (bcrypt) + 서명된 세션 쿠키 (httpOnly) |
 | 결제 | PG 어댑터 구조 (현재 테스트용 mock) — `docs/PAYMENT_INTEGRATION.md` |

@@ -6,7 +6,8 @@ import { classSchema } from "@/lib/teacher-validators";
 
 const { classes } = schema;
 
-export const PATCH = handler(async (req: Request, { params }: { params: { id: string } }) => {
+export const PATCH = handler(async (req: Request, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
   const { teacher } = await requireTeacher();
   const b = await parseBody(req, classSchema.partial());
   // 가격 변경은 이후 새 예약부터 적용 (기존 예약은 결제 시점 금액 유지)

@@ -10,7 +10,8 @@ const body = z.object({
   reason: z.string().trim().max(500).default(""),
 });
 
-export const POST = handler(async (req: Request, { params }: { params: { id: string } }) => {
+export const POST = handler(async (req: Request, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
   await requireAdmin();
   const { action, reason } = await parseBody(req, body);
   const t = await db.query.teachers.findFirst({ where: eq(schema.teachers.id, params.id) });

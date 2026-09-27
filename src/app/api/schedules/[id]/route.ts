@@ -6,7 +6,8 @@ import { POLICY_TEXT } from "@/lib/policy";
 export const dynamic = "force-dynamic";
 
 /** 예약 화면용 일정 요약 */
-export const GET = handler(async (_req: Request, { params }: { params: { id: string } }) => {
+export const GET = handler(async (_req: Request, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
   const [row] = await db.select({
     id: schema.schedules.id, startsAt: schema.schedules.startsAt, endsAt: schema.schedules.endsAt, isCanceled: schema.schedules.isCanceled,
     classTitle: schema.classes.title, format: schema.classes.format, price: schema.classes.price, durationMinutes: schema.classes.durationMinutes,

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import Avatar from "@/components/Avatar";
@@ -16,7 +16,8 @@ type Detail = {
 };
 const TABS = [["profile", "프로필"], ["reviews", "평점"], ["classes", "클래스"], ["messages", "메시지"]] as const;
 
-export default function TeacherDetail({ params }: { params: { id: string } }) {
+export default function TeacherDetail(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const router = useRouter();
   const [d, setD] = useState<Detail | null>(null);
   const [err, setErr] = useState("");

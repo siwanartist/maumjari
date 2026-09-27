@@ -17,7 +17,8 @@ const body = z.object({
   confirmTeacherNoShow: z.boolean().default(false),
 });
 
-export const POST = handler(async (req: Request, { params }: { params: { id: string } }) => {
+export const POST = handler(async (req: Request, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
   await requireAdmin();
   const b = await parseBody(req, body);
   const r = await db.query.reports.findFirst({ where: eq(schema.reports.id, params.id) });

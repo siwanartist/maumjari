@@ -6,7 +6,8 @@ import { requireTeacher } from "@/lib/auth";
 const { classes, schedules, bookings } = schema;
 
 /** 일정 닫기: 진행 중인 예약이 있으면 먼저 개별 거절/취소해야 한다 (환불·페널티 규칙을 우회하지 못하도록) */
-export const DELETE = handler(async (_req: Request, { params }: { params: { id: string } }) => {
+export const DELETE = handler(async (_req: Request, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
   const { teacher } = await requireTeacher();
   const [s] = await db.select({ id: schedules.id, teacherId: classes.teacherId }).from(schedules)
     .innerJoin(classes, eq(schedules.classId, classes.id)).where(eq(schedules.id, params.id));
